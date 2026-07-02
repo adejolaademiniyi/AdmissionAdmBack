@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Laravel backend image for Railway
 # ─────────────────────────────────────────────────────────────────────────────
-FROM php:8.3-cli-bookworm
+FROM php:8.4-cli-bookworm
 
 # System packages + PHP extensions Laravel needs (MySQL, mbstring, zip, bcmath)
 RUN apt-get update && apt-get install -y --no-install-recommends \
