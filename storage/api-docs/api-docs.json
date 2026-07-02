@@ -1,0 +1,1417 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Admission Application API",
+        "description": "REST API for the Secondary School Admission Registration System. Manages applicant biodata, next-of-kin information, and health records.",
+        "contact": {
+            "email": "admin@school.edu.ng"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api/v1",
+            "description": "Version 1"
+        }
+    ],
+    "paths": {
+        "/applicant/auth/login": {
+            "post": {
+                "tags": [
+                    "Applicant Auth"
+                ],
+                "summary": "Applicant login",
+                "description": "Authenticates an applicant using their application number and password. Returns a Bearer token for use on all protected applicant endpoints.",
+                "operationId": "7f418eb0a1b894e3454a99b69e07da1b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "chukwuemeka@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret1234"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "accessToken": {
+                                            "type": "string",
+                                            "example": "2|abc123token..."
+                                        },
+                                        "applicant": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "application_number": {
+                                                    "type": "string",
+                                                    "example": "APP-6A36A61045B86"
+                                                },
+                                                "first_name": {
+                                                    "type": "string",
+                                                    "example": "Chukwuemeka"
+                                                },
+                                                "last_name": {
+                                                    "type": "string",
+                                                    "example": "Okafor"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "chukwuemeka@example.com"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/applicant/auth/logout": {
+            "post": {
+                "tags": [
+                    "Applicant Auth"
+                ],
+                "summary": "Applicant logout",
+                "description": "Revokes the current applicant Bearer token.",
+                "operationId": "9ed2cd2d695fb88f2d3a023e33f11502",
+                "responses": {
+                    "200": {
+                        "description": "Logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden — token does not belong to an applicant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/applicant/auth/me": {
+            "get": {
+                "tags": [
+                    "Applicant Auth"
+                ],
+                "summary": "Get the authenticated applicant profile",
+                "description": "Returns basic profile information for the currently authenticated applicant.",
+                "operationId": "0feb0aab155f327c26707a3a3e078432",
+                "responses": {
+                    "200": {
+                        "description": "Applicant profile",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "application_number": {
+                                            "type": "string",
+                                            "example": "APP-6A36A61045B86"
+                                        },
+                                        "first_name": {
+                                            "type": "string",
+                                            "example": "Chukwuemeka"
+                                        },
+                                        "last_name": {
+                                            "type": "string",
+                                            "example": "Okafor"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "chukwuemeka@example.com"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "pending"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden — token does not belong to an applicant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/applicants": {
+            "get": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "List applicants with optional filtering and pagination",
+                "operationId": "d8d3856442f7942c16e9d4c4b8ceb926",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search by name, phone or application number",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "john"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "under_review",
+                                "approved",
+                                "rejected"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated list of applicants",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ApplicantResource"
+                                            }
+                                        },
+                                        "current_page": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "last_page": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "per_page": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 95
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "Submit a new admission application",
+                "description": "Creates an applicant record together with next-of-kin and health record in one request. An application number is auto-generated. Send as `multipart/form-data` when including a passport photo.",
+                "operationId": "2623e0093846ec8cf08ff9816fac438e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApplicantRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Application submitted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Application submitted successfully."
+                                        },
+                                        "applicant": {
+                                            "$ref": "#/components/schemas/ApplicantResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/applicants/lookup": {
+            "get": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "Look up an application by application number (public)",
+                "operationId": "5fb008e6c0d3b1fa09b0cd38e197d809",
+                "parameters": [
+                    {
+                        "name": "applicationNumber",
+                        "in": "query",
+                        "description": "e.g. APP-6A36A61045B86",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Application found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApplicantResource"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Application not found"
+                    },
+                    "422": {
+                        "description": "applicationNumber query param is required"
+                    }
+                }
+            }
+        },
+        "/applicants/{id}": {
+            "get": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "Get a single application",
+                "operationId": "03433cd4041ff20e7f79a4906cb6cf00",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Applicant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Applicant details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApplicantResource"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "Update an existing application",
+                "operationId": "275ea706e9f3e3bcdcf6879c2ce2b889",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Applicant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ApplicantRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Application updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Application updated successfully."
+                                        },
+                                        "applicant": {
+                                            "$ref": "#/components/schemas/ApplicantResource"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "Delete an application",
+                "operationId": "77b690f6fa07ba9bdb13fa591abdda95",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Applicant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Application deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Application deleted successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/applicants/{id}/print": {
+            "get": {
+                "tags": [
+                    "Applicants"
+                ],
+                "summary": "Get print-ready data for an application form",
+                "description": "Returns a structured payload with all information needed to render and print the admission application form.",
+                "operationId": "07602c1eb7fa7fff3356ad15e3066bf7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Applicant ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Print-ready application data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "print_data": {
+                                            "properties": {
+                                                "application_number": {
+                                                    "type": "string",
+                                                    "example": "APP-6672A1B2C3D4"
+                                                },
+                                                "submitted_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "passport_url": {
+                                                    "type": "string",
+                                                    "example": "http://localhost:8000/storage/passports/1/photo.jpg",
+                                                    "nullable": true
+                                                },
+                                                "passport_data_uri": {
+                                                    "description": "Base64 data URI of the passport photo. Use this for printing/PDF so the image is never blocked by CORS.",
+                                                    "type": "string",
+                                                    "example": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+                                                    "nullable": true
+                                                },
+                                                "biodata": {
+                                                    "properties": {
+                                                        "full_name": {
+                                                            "type": "string",
+                                                            "example": "Chukwuemeka James Okafor"
+                                                        },
+                                                        "gender": {
+                                                            "type": "string",
+                                                            "example": "Male"
+                                                        },
+                                                        "phone_number": {
+                                                            "type": "string",
+                                                            "example": "08012345678"
+                                                        },
+                                                        "home_address": {
+                                                            "type": "string",
+                                                            "example": "12 Aba Road, Owerri"
+                                                        },
+                                                        "state": {
+                                                            "type": "string",
+                                                            "example": "Imo"
+                                                        },
+                                                        "local_government": {
+                                                            "type": "string",
+                                                            "example": "Owerri North"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "next_of_kin": {
+                                                    "$ref": "#/components/schemas/NextOfKinInput"
+                                                },
+                                                "health_record": {
+                                                    "$ref": "#/components/schemas/HealthRecordInput"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not found"
+                    }
+                }
+            }
+        },
+        "/applicant/dashboard": {
+            "get": {
+                "tags": [
+                    "Applicant Dashboard"
+                ],
+                "summary": "Get the authenticated applicant's full application",
+                "description": "Returns the complete application record — biodata, next-of-kin, health record and current admission status — for the logged-in applicant.",
+                "operationId": "2c2dbde65942cea81a24f54e754889c2",
+                "responses": {
+                    "200": {
+                        "description": "Full application record",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApplicantResource"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden — token does not belong to an applicant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/applicant/status": {
+            "get": {
+                "tags": [
+                    "Applicant Dashboard"
+                ],
+                "summary": "Get the applicant's admission status",
+                "description": "Returns only the application number and current admission status. Useful for a lightweight status-check call.",
+                "operationId": "13669f82bd447403852fbca0abc8b564",
+                "responses": {
+                    "200": {
+                        "description": "Admission status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "application_number": {
+                                            "type": "string",
+                                            "example": "APP-6A36A61045B86"
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "pending",
+                                            "enum": [
+                                                "pending",
+                                                "under_review",
+                                                "approved",
+                                                "rejected"
+                                            ]
+                                        },
+                                        "submitted_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden — token does not belong to an applicant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/applicant/passport": {
+            "post": {
+                "tags": [
+                    "Applicant Dashboard"
+                ],
+                "summary": "Upload or replace passport photo",
+                "description": "Uploads a passport photo for the authenticated applicant. Send as `multipart/form-data`. Replaces any previously uploaded photo.",
+                "operationId": "55ba68dd1022f6854087f77c5d7cdea7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "passport"
+                                ],
+                                "properties": {
+                                    "passport": {
+                                        "description": "Image file (jpg, jpeg, png). Max 2 MB.",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Passport uploaded successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Passport uploaded successfully."
+                                        },
+                                        "passport_url": {
+                                            "type": "string",
+                                            "example": "http://localhost/storage/passports/1/photo.jpg"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden — token does not belong to an applicant"
+                    },
+                    "422": {
+                        "description": "Validation error (invalid file type or size)"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/applicant/print": {
+            "get": {
+                "tags": [
+                    "Applicant Dashboard"
+                ],
+                "summary": "Get print-ready data for the authenticated applicant's form",
+                "description": "Returns a structured payload with all information needed to render and print the admission application form for the logged-in applicant.",
+                "operationId": "e84b203528b87161c77e71439b3f9f57",
+                "responses": {
+                    "200": {
+                        "description": "Print-ready application data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "print_data": {
+                                            "properties": {
+                                                "application_number": {
+                                                    "type": "string",
+                                                    "example": "APP-6672A1B2C3D4"
+                                                },
+                                                "submitted_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "passport_url": {
+                                                    "type": "string",
+                                                    "example": "http://localhost:8000/storage/passports/1/photo.jpg",
+                                                    "nullable": true
+                                                },
+                                                "passport_data_uri": {
+                                                    "description": "Base64 data URI of the passport photo. Use this for printing/PDF so the image is never blocked by CORS.",
+                                                    "type": "string",
+                                                    "example": "data:image/jpeg;base64,/9j/4AAQSkZJRg...",
+                                                    "nullable": true
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending",
+                                                    "enum": [
+                                                        "pending",
+                                                        "under_review",
+                                                        "approved",
+                                                        "rejected"
+                                                    ]
+                                                },
+                                                "biodata": {
+                                                    "properties": {
+                                                        "full_name": {
+                                                            "type": "string",
+                                                            "example": "Chukwuemeka James Okafor"
+                                                        },
+                                                        "gender": {
+                                                            "type": "string",
+                                                            "example": "Male"
+                                                        },
+                                                        "phone_number": {
+                                                            "type": "string",
+                                                            "example": "08012345678"
+                                                        },
+                                                        "home_address": {
+                                                            "type": "string",
+                                                            "example": "12 Aba Road, Owerri"
+                                                        },
+                                                        "state": {
+                                                            "type": "string",
+                                                            "example": "Imo"
+                                                        },
+                                                        "local_government": {
+                                                            "type": "string",
+                                                            "example": "Owerri North"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "next_of_kin": {
+                                                    "$ref": "#/components/schemas/NextOfKinInput"
+                                                },
+                                                "health_record": {
+                                                    "$ref": "#/components/schemas/HealthRecordInput"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden — token does not belong to an applicant"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Admin login",
+                "operationId": "99d66635c4992aeaa6aa44ff653d0563",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "admin@school.edu.ng"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "accessToken": {
+                                            "type": "string",
+                                            "example": "1|abc123..."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Admin"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "admin@school.edu.ng"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout and invalidate current token",
+                "operationId": "6abf3b64a4bc7838d56346f05a5153af",
+                "responses": {
+                    "200": {
+                        "description": "Logged out",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Return the authenticated admin user",
+                "operationId": "7edae2cdbaafc10dff8c9c4198b320a2",
+                "responses": {
+                    "200": {
+                        "description": "Current user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "Admin"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "admin@school.edu.ng"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/dashboard/stats": {
+            "get": {
+                "tags": [
+                    "Dashboard"
+                ],
+                "summary": "Admission statistics for the admin dashboard",
+                "operationId": "06b55ec316b401263ae54a499fc977ad",
+                "responses": {
+                    "200": {
+                        "description": "Aggregated stats",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 120
+                                        },
+                                        "pending": {
+                                            "type": "integer",
+                                            "example": 45
+                                        },
+                                        "under_review": {
+                                            "type": "integer",
+                                            "example": 30
+                                        },
+                                        "approved": {
+                                            "type": "integer",
+                                            "example": 35
+                                        },
+                                        "rejected": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "today": {
+                                            "type": "integer",
+                                            "example": 8
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApplicantBiodata": {
+                "required": [
+                    "first_name",
+                    "last_name",
+                    "gender",
+                    "phone_number",
+                    "home_address",
+                    "state",
+                    "local_government"
+                ],
+                "properties": {
+                    "first_name": {
+                        "type": "string",
+                        "example": "Chukwuemeka"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Okafor"
+                    },
+                    "middle_name": {
+                        "type": "string",
+                        "example": "James",
+                        "nullable": true
+                    },
+                    "gender": {
+                        "type": "string",
+                        "example": "Male",
+                        "enum": [
+                            "Male",
+                            "Female"
+                        ]
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "08012345678"
+                    },
+                    "home_address": {
+                        "type": "string",
+                        "example": "12 Aba Road, Owerri"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "Imo"
+                    },
+                    "local_government": {
+                        "type": "string",
+                        "example": "Owerri North"
+                    }
+                },
+                "type": "object"
+            },
+            "NextOfKinInput": {
+                "required": [
+                    "name",
+                    "relationship",
+                    "phone_number",
+                    "home_address"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Ngozi Okafor"
+                    },
+                    "relationship": {
+                        "type": "string",
+                        "example": "Mother",
+                        "enum": [
+                            "Father",
+                            "Mother",
+                            "Guardian",
+                            "Sibling",
+                            "Spouse",
+                            "Other"
+                        ]
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "08098765432"
+                    },
+                    "home_address": {
+                        "type": "string",
+                        "example": "12 Aba Road, Owerri"
+                    }
+                },
+                "type": "object"
+            },
+            "HealthRecordInput": {
+                "required": [
+                    "blood_group",
+                    "genotype"
+                ],
+                "properties": {
+                    "blood_group": {
+                        "type": "string",
+                        "example": "O+",
+                        "enum": [
+                            "A+",
+                            "A-",
+                            "B+",
+                            "B-",
+                            "AB+",
+                            "AB-",
+                            "O+",
+                            "O-"
+                        ]
+                    },
+                    "genotype": {
+                        "type": "string",
+                        "example": "AA",
+                        "enum": [
+                            "AA",
+                            "AS",
+                            "AC",
+                            "SS",
+                            "SC",
+                            "CC"
+                        ]
+                    },
+                    "ailments": {
+                        "type": "string",
+                        "example": "Mild asthma",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ApplicantResource": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "application_number": {
+                        "type": "string",
+                        "example": "APP-6672A1B2C3D4"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "Chukwuemeka"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Okafor"
+                    },
+                    "middle_name": {
+                        "type": "string",
+                        "example": "James",
+                        "nullable": true
+                    },
+                    "gender": {
+                        "type": "string",
+                        "example": "Male",
+                        "enum": [
+                            "Male",
+                            "Female"
+                        ]
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "08012345678"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "chukwuemeka@example.com"
+                    },
+                    "passport_url": {
+                        "type": "string",
+                        "example": "http://localhost/storage/passports/1/photo.jpg",
+                        "nullable": true
+                    },
+                    "home_address": {
+                        "type": "string",
+                        "example": "12 Aba Road, Owerri"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "Imo"
+                    },
+                    "local_government": {
+                        "type": "string",
+                        "example": "Owerri North"
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "pending",
+                        "enum": [
+                            "pending",
+                            "under_review",
+                            "approved",
+                            "rejected"
+                        ]
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "next_of_kin": {
+                        "$ref": "#/components/schemas/NextOfKinInput"
+                    },
+                    "health_record": {
+                        "$ref": "#/components/schemas/HealthRecordInput"
+                    }
+                },
+                "type": "object"
+            },
+            "ApplicantRequest": {
+                "required": [
+                    "first_name",
+                    "last_name",
+                    "gender",
+                    "phone_number",
+                    "email",
+                    "password",
+                    "home_address",
+                    "state",
+                    "local_government",
+                    "next_of_kin",
+                    "health_record"
+                ],
+                "properties": {
+                    "first_name": {
+                        "type": "string",
+                        "example": "Chukwuemeka"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Okafor"
+                    },
+                    "middle_name": {
+                        "type": "string",
+                        "example": "James",
+                        "nullable": true
+                    },
+                    "gender": {
+                        "type": "string",
+                        "example": "Male",
+                        "enum": [
+                            "Male",
+                            "Female"
+                        ]
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "08012345678"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "chukwuemeka@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "secret1234",
+                        "minLength": 8
+                    },
+                    "passport": {
+                        "description": "Optional passport photo (jpg/jpeg/png, max 2 MB). Send as multipart/form-data when included.",
+                        "type": "string",
+                        "format": "binary"
+                    },
+                    "home_address": {
+                        "type": "string",
+                        "example": "12 Aba Road, Owerri"
+                    },
+                    "state": {
+                        "type": "string",
+                        "example": "Imo"
+                    },
+                    "local_government": {
+                        "type": "string",
+                        "example": "Owerri North"
+                    },
+                    "next_of_kin": {
+                        "$ref": "#/components/schemas/NextOfKinInput"
+                    },
+                    "health_record": {
+                        "$ref": "#/components/schemas/HealthRecordInput"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The given data was invalid."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter the token returned by POST /api/v1/auth/login",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Applicant Auth",
+            "description": "Applicant Auth"
+        },
+        {
+            "name": "Applicants",
+            "description": "Applicants"
+        },
+        {
+            "name": "Applicant Dashboard",
+            "description": "Applicant Dashboard"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Dashboard",
+            "description": "Dashboard"
+        }
+    ]
+}

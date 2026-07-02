@@ -1,0 +1,44 @@
+name: Deploy Backend (Railway)
+
+# Auto-deploys the Laravel backend to Railway on every push to main.
+# NOTE: Railway's native GitHub integration can do this with zero config — this
+# workflow is optional and adds a build/lint check before deploying.
+#
+# Required GitHub repo secrets (Settings → Secrets and variables → Actions):
+#   RAILWAY_TOKEN    → Railway → Project → Settings → Tokens (a Project Token)
+#   RAILWAY_SERVICE  → the exact name of your backend service in Railway
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Build validation before deploying ──────────────────────────────
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, mbstring, bcmath, zip
+          coverage: none
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Check code style (non-blocking)
+        run: vendor/bin/pint --test || true
+
+      # ── Deploy to Railway ──────────────────────────────────────────────
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy
+        run: railway up --detach --service "${{ secrets.RAILWAY_SERVICE }}"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
